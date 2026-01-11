@@ -6,9 +6,10 @@ import { useInquiryStore } from "@/store/inquiryStore";
 import KanbanColumn from "@/components/KanbanColumn";
 import InquiryDetailModal from "@/components/InquiryDetailModal";
 import { InquiryPhase } from "@/types/inquiry";
+import FilterPanel from "@/components/FilterPanel";
 
-export default function Home() {
-    const { inquiries, fetchInquiries, moveInquiry, loading } =
+export default function Page() {
+    const { inquiries, fetchInquiries, moveInquiry, loading, filters } =
         useInquiryStore();
 
     useEffect(() => {
@@ -24,6 +25,23 @@ export default function Home() {
         "completed",
     ];
 
+    const filteredInquiries = inquiries.filter((i) => {
+        const { clientName, minValue, dateFrom, dateTo } = filters;
+
+        const matchesClient = clientName
+            ? i.clientName.toLowerCase().includes(clientName.toLowerCase())
+            : true;
+
+        const matchesValue = minValue ? i.potentialValue >= minValue : true;
+
+        const matchesDateFrom = dateFrom ? i.eventDate >= dateFrom : true;
+        const matchesDateTo = dateTo ? i.eventDate <= dateTo : true;
+
+        return (
+            matchesClient && matchesValue && matchesDateFrom && matchesDateTo
+        );
+    });
+
     const grouped: Record<InquiryPhase, typeof inquiries> = {
         new: [],
         sent_to_hotels: [],
@@ -31,7 +49,7 @@ export default function Home() {
         completed: [],
     };
     phases.forEach((phase) => {
-        grouped[phase] = inquiries.filter((i) => i.phase === phase);
+        grouped[phase] = filteredInquiries.filter((i) => i.phase === phase);
     });
 
     const handleDragEnd = (event: DragEndEvent) => {
@@ -43,21 +61,25 @@ export default function Home() {
     };
 
     return (
-        <DndContext
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-        >
-            <div className="p-6 flex gap-4 overflow-x-auto">
-                {phases.map((phase) => (
-                    <KanbanColumn
-                        key={phase}
-                        phase={phase}
-                        inquiries={grouped[phase]}
-                    />
-                ))}
-            </div>
+        <>
+            <FilterPanel />
+
+            <DndContext
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+            >
+                <div className="p-6 flex gap-4 overflow-x-auto">
+                    {phases.map((phase) => (
+                        <KanbanColumn
+                            key={phase}
+                            phase={phase}
+                            inquiries={grouped[phase]}
+                        />
+                    ))}
+                </div>
+            </DndContext>
 
             <InquiryDetailModal />
-        </DndContext>
+        </>
     );
 }

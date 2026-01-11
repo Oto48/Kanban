@@ -1,22 +1,36 @@
 import { create } from "zustand";
 import { Inquiry, InquiryPhase } from "@/types/inquiry";
 
+interface InquiryFilters {
+    clientName: string;
+    minValue: number;
+    dateFrom: string;
+    dateTo: string;
+}
+
 interface InquiryState {
     inquiries: Inquiry[];
     loading: boolean;
-
     selectedInquiry: Inquiry | null;
+    filters: InquiryFilters;
 
     fetchInquiries: () => Promise<void>;
     moveInquiry: (id: string, newPhase: InquiryPhase) => Promise<void>;
     selectInquiry: (inquiry: Inquiry) => void;
     closeInquiry: () => void;
+    setFilters: (filters: Partial<InquiryFilters>) => void;
 }
 
 export const useInquiryStore = create<InquiryState>((set) => ({
     inquiries: [],
     loading: false,
     selectedInquiry: null,
+    filters: {
+        clientName: "",
+        minValue: 0,
+        dateFrom: "",
+        dateTo: "",
+    },
 
     fetchInquiries: async () => {
         set({ loading: true });
@@ -51,4 +65,9 @@ export const useInquiryStore = create<InquiryState>((set) => ({
 
     selectInquiry: (inquiry) => set({ selectedInquiry: inquiry }),
     closeInquiry: () => set({ selectedInquiry: null }),
+
+    setFilters: (newFilters) =>
+        set((state) => ({
+            filters: { ...state.filters, ...newFilters },
+        })),
 }));
