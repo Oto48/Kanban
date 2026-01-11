@@ -1,26 +1,62 @@
 "use client";
 
 import { useEffect } from "react";
+import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
 import { useInquiryStore } from "@/store/inquiryStore";
+import KanbanColumn from "@/components/KanbanColumn";
+import { InquiryPhase } from "@/types/inquiry";
 
 export default function Home() {
-    const { inquiries, fetchInquiries, loading } = useInquiryStore();
+    const { inquiries, fetchInquiries, moveInquiry, loading } =
+        useInquiryStore();
 
     useEffect(() => {
         fetchInquiries();
     }, [fetchInquiries]);
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div className="p-6">Loading...</div>;
+
+    const phases: InquiryPhase[] = [
+        "new",
+        "sent_to_hotels",
+        "offers_received",
+        "completed",
+    ];
+
+    // group inquiries by phase
+    const grouped: Record<InquiryPhase, typeof inquiries> = {
+        new: [],
+        sent_to_hotels: [],
+        offers_received: [],
+        completed: [],
+    };
+    phases.forEach((phase) => {
+        grouped[phase] = inquiries.filter((i) => i.phase === phase);
+    });
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over) return;
+
+        // over.id will be the column's phase id, cast to InquiryPhase
+        const newPhase = over.id as InquiryPhase;
+        moveInquiry(active.id.toString(), newPhase);
+    };
 
     return (
-        <div className="p-6 space-y-2">
-            {inquiries.map((i) => (
-                <div key={i.id} className="border p-3 rounded">
-                    <div className="font-semibold">{i.clientName}</div>
-                    <div>{i.phase}</div>
-                    <div>CHF {i.potentialValue}</div>
-                </div>
-            ))}
-        </div>
+        <DndContext
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+        >
+            <div className="p-6 flex gap-4 overflow-x-auto">
+                {phases.map((phase) => (
+                    <KanbanColumn
+                        key={phase}
+                        phase={phase}
+                        inquiries={grouped[phase]}
+                    />
+                ))}
+            </div>
+        </DndContext>
     );
 }
