@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
 import { useInquiryStore } from "@/store/inquiryStore";
 import KanbanColumn from "@/components/KanbanColumn";
+import InquiryDetailModal from "@/components/InquiryDetailModal";
 import { InquiryPhase } from "@/types/inquiry";
 
 export default function Home() {
@@ -23,7 +24,6 @@ export default function Home() {
         "completed",
     ];
 
-    // group inquiries by phase
     const grouped: Record<InquiryPhase, typeof inquiries> = {
         new: [],
         sent_to_hotels: [],
@@ -38,7 +38,6 @@ export default function Home() {
         const { active, over } = event;
         if (!over) return;
 
-        // over.id will be the column's phase id, cast to InquiryPhase
         const newPhase = over.id as InquiryPhase;
         moveInquiry(active.id.toString(), newPhase);
     };
@@ -57,6 +56,8 @@ export default function Home() {
                     />
                 ))}
             </div>
+
+            <InquiryDetailModal />
         </DndContext>
     );
 }

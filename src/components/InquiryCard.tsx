@@ -1,32 +1,40 @@
 "use client";
 
 import { Inquiry } from "@/types/inquiry";
+import { useInquiryStore } from "@/store/inquiryStore";
 import { useDraggable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
 
 interface Props {
     inquiry: Inquiry;
 }
 
 export default function InquiryCard({ inquiry }: Props) {
-    const { attributes, listeners, setNodeRef, transform, isDragging } =
-        useDraggable({
-            id: inquiry.id,
-        });
+    const { selectInquiry } = useInquiryStore();
 
-    const style = {
-        transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0.5 : 1,
-    };
+    const { attributes, listeners, setNodeRef, transform } = useDraggable({
+        id: inquiry.id,
+    });
+
+    const style = transform
+        ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
+        : undefined;
 
     return (
         <div
             ref={setNodeRef}
             style={style}
-            {...listeners}
-            {...attributes}
-            className="border p-3 rounded shadow-sm bg-white cursor-grab"
+            className="border p-3 rounded shadow-sm bg-white cursor-pointer"
+            onClick={() => selectInquiry(inquiry)}
         >
+            <div
+                {...listeners}
+                {...attributes}
+                className="cursor-move text-xs text-gray-400 mb-1"
+                onClick={(e) => e.stopPropagation()}
+            >
+                Drag
+            </div>
+
             <div className="font-semibold">{inquiry.clientName}</div>
             <div>Event: {inquiry.eventDate}</div>
             <div>Guests: {inquiry.guestCount}</div>

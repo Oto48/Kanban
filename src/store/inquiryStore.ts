@@ -4,13 +4,19 @@ import { Inquiry, InquiryPhase } from "@/types/inquiry";
 interface InquiryState {
     inquiries: Inquiry[];
     loading: boolean;
+
+    selectedInquiry: Inquiry | null;
+
     fetchInquiries: () => Promise<void>;
     moveInquiry: (id: string, newPhase: InquiryPhase) => Promise<void>;
+    selectInquiry: (inquiry: Inquiry) => void;
+    closeInquiry: () => void;
 }
 
 export const useInquiryStore = create<InquiryState>((set) => ({
     inquiries: [],
     loading: false,
+    selectedInquiry: null,
 
     fetchInquiries: async () => {
         set({ loading: true });
@@ -25,14 +31,13 @@ export const useInquiryStore = create<InquiryState>((set) => ({
         }
     },
 
-    moveInquiry: async (id: string, newPhase: InquiryPhase) => {
+    moveInquiry: async (id, newPhase) => {
         set((state) => ({
             inquiries: state.inquiries.map((i) =>
                 i.id === id ? { ...i, phase: newPhase } : i
             ),
         }));
 
-        // PATCH API
         try {
             await fetch("/api/inquiries", {
                 method: "PATCH",
@@ -43,4 +48,7 @@ export const useInquiryStore = create<InquiryState>((set) => ({
             console.error(err);
         }
     },
+
+    selectInquiry: (inquiry) => set({ selectedInquiry: inquiry }),
+    closeInquiry: () => set({ selectedInquiry: null }),
 }));
