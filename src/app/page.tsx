@@ -68,7 +68,7 @@ export default function Page() {
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
             >
-                <div className="p-6 flex gap-4 overflow-x-auto">
+                <div className="p-6 flex flex-col md:flex-row md:flex-wrap gap-4 justify-between">
                     {phases.map((phase) => (
                         <KanbanColumn
                             key={phase}

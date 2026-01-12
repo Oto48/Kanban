@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useInquiryStore } from "@/store/inquiryStore";
 import debounce from "lodash.debounce";
 
@@ -12,13 +12,17 @@ export default function FilterPanel() {
     const [dateFrom, setDateFrom] = useState(filters.dateFrom || "");
     const [dateTo, setDateTo] = useState(filters.dateTo || "");
 
-    const updateClientName = debounce((value: string) => {
-        setFilters({ clientName: value });
-    }, 300);
+    const updateClientName = useCallback(
+        debounce((value: string) => {
+            setFilters({ clientName: value });
+        }, 300),
+        []
+    );
 
     useEffect(() => {
         updateClientName(clientName);
-    }, [clientName]);
+        return () => updateClientName.cancel();
+    }, [clientName, updateClientName]);
 
     const handleMinValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = Number(e.target.value);
@@ -63,7 +67,8 @@ export default function FilterPanel() {
                     type="text"
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
-                    className="border rounded p-1"
+                    className="border rounded p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
+                    placeholder="Search client..."
                 />
             </div>
 
@@ -75,7 +80,8 @@ export default function FilterPanel() {
                     type="number"
                     value={minValue}
                     onChange={handleMinValueChange}
-                    className="border rounded p-1 w-24"
+                    className="border rounded p-2 w-24 focus:ring-2 focus:ring-blue-300 focus:outline-none"
+                    min={0}
                 />
             </div>
 
@@ -85,7 +91,7 @@ export default function FilterPanel() {
                     type="date"
                     value={dateFrom}
                     onChange={handleDateFromChange}
-                    className="border rounded p-1"
+                    className="border rounded p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
                 />
             </div>
 
@@ -95,15 +101,25 @@ export default function FilterPanel() {
                     type="date"
                     value={dateTo}
                     onChange={handleDateToChange}
-                    className="border rounded p-1"
+                    className="border rounded p-2 focus:ring-2 focus:ring-blue-300 focus:outline-none"
                 />
             </div>
 
             <button
                 onClick={clearFilters}
-                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                className={`flex items-center gap-2 bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 transition ${
+                    activeCount === 0
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer"
+                }`}
+                disabled={activeCount === 0}
             >
-                Clear ({activeCount})
+                Clear
+                {activeCount > 0 && (
+                    <span className="bg-white text-red-500 rounded-full px-2 text-xs font-semibold">
+                        {activeCount}
+                    </span>
+                )}
             </button>
         </div>
     );

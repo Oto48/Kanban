@@ -14,18 +14,38 @@ export default function KanbanColumn({ phase, inquiries }: Props) {
 
     const totalValue = inquiries.reduce((sum, i) => sum + i.potentialValue, 0);
 
+    const highValueCount = inquiries.filter(
+        (i) => i.potentialValue > 50000
+    ).length;
+
     return (
         <div
             ref={setNodeRef}
-            className="flex-1 bg-gray-100 p-3 rounded space-y-3 min-w-[250px]"
+            className={`flex-1 rounded min-w-[250px] lg:max-w-[calc(33%-0.5em)] shadow-sm hover:shadow-md transition-all
+                ${
+                    highValueCount > 0
+                        ? "border-2 border-red-400"
+                        : "border border-transparent"
+                }
+            `}
         >
-            <div className="font-bold mb-2">
-                {phase} ({inquiries.length}) — CHF {totalValue}
+            <div className="bg-gray-200 rounded-t px-3 py-2 font-bold text-gray-800 flex justify-between items-center">
+                <span className="capitalize">{phase.replace(/_/g, " ")}</span>
+                <span className="text-sm text-gray-600">
+                    {inquiries.length} | CHF {totalValue}
+                    {highValueCount > 0 && (
+                        <span className="ml-2 text-red-600 font-semibold">
+                            ⚡ {highValueCount}
+                        </span>
+                    )}
+                </span>
             </div>
 
-            {inquiries.map((i) => (
-                <InquiryCard key={i.id} inquiry={i} />
-            ))}
+            <div className="p-3 space-y-3">
+                {inquiries.map((i) => (
+                    <InquiryCard key={i.id} inquiry={i} />
+                ))}
+            </div>
         </div>
     );
 }
