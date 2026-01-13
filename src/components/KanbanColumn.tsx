@@ -21,7 +21,7 @@ export default function KanbanColumn({ phase, inquiries }: Props) {
     return (
         <div
             ref={setNodeRef}
-            className={`flex-1 rounded min-w-[250px] lg:max-w-[calc(33%-0.5em)] shadow-sm hover:shadow-md transition-all
+            className={`flex-1 rounded min-w-[250px] shadow-sm hover:shadow-md transition-all
                 ${
                     highValueCount > 0
                         ? "border-2 border-red-400"

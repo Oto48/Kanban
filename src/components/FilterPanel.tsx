@@ -58,7 +58,7 @@ export default function FilterPanel() {
     ].filter(Boolean).length;
 
     return (
-        <div className="bg-gray-50 p-4 rounded shadow mb-4 flex flex-col md:flex-row gap-4 items-end">
+        <div className="bg-gray-50 p-4 rounded shadow mb-4 flex flex-col md:flex-row gap-4 items-start md:items-end">
             <div className="flex flex-col">
                 <label className="text-sm font-semibold mb-1">
                     Client Name

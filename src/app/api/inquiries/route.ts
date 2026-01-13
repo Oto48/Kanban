@@ -6,6 +6,8 @@ export async function GET(request: Request) {
 
     const clientName = searchParams.get("clientName");
     const minValue = searchParams.get("minValue");
+    const dateFrom = searchParams.get("dateFrom");
+    const dateTo = searchParams.get("dateTo");
 
     let result = inquiries;
 
@@ -19,23 +21,65 @@ export async function GET(request: Request) {
         result = result.filter((i) => i.potentialValue >= Number(minValue));
     }
 
-    // simulate network delay
+    if (dateFrom) {
+        const fromDate = new Date(dateFrom);
+        result = result.filter((i) => new Date(i.eventDate) >= fromDate);
+    }
+
+    if (dateTo) {
+        const toDate = new Date(dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        result = result.filter((i) => new Date(i.eventDate) <= toDate);
+    }
+
     await new Promise((res) => setTimeout(res, 500));
 
     return NextResponse.json(result);
 }
 
 export async function PATCH(request: Request) {
-    const body = await request.json();
-    const { id, phase } = body;
+    try {
+        const body = await request.json();
+        const { id, phase } = body;
 
-    const inquiry = inquiries.find((i) => i.id === id);
-    if (!inquiry)
-        return NextResponse.json({ error: "Not found" }, { status: 404 });
+        if (!id || !phase) {
+            return NextResponse.json(
+                { error: "Missing id or phase" },
+                { status: 400 }
+            );
+        }
 
-    inquiry.phase = phase;
-    inquiry.updatedAt = new Date().toISOString();
+        const inquiry = inquiries.find((i) => i.id === id);
+        if (!inquiry) {
+            return NextResponse.json(
+                { error: "Inquiry not found" },
+                { status: 404 }
+            );
+        }
 
-    await new Promise((res) => setTimeout(res, 500));
-    return NextResponse.json(inquiry);
+        const validPhases = [
+            "new",
+            "sent_to_hotels",
+            "offers_received",
+            "completed",
+        ];
+        if (!validPhases.includes(phase)) {
+            return NextResponse.json(
+                { error: "Invalid phase" },
+                { status: 400 }
+            );
+        }
+
+        inquiry.phase = phase;
+        inquiry.updatedAt = new Date().toISOString();
+
+        await new Promise((res) => setTimeout(res, 500));
+
+        return NextResponse.json(inquiry);
+    } catch (error) {
+        return NextResponse.json(
+            { error: "Invalid request body" },
+            { status: 400 }
+        );
+    }
 }
